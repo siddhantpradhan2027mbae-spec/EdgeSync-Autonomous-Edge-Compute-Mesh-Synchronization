@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdgeSync Interactive Prototype - Tata eHack</title>
+    <style>
+        :root {
+            --bg-base: #020617;
+            --bg-panel: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --tcs-blue: #0078D7;
+            --tcs-blue-hover: #005A9E;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --border: #334155;
+            --highlight: #38bdf8;
+            --font-main: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .logo-placeholder {
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        .logo-placeholder span {
+            color: var(--tcs-blue);
+        }
+
+        .header-titles h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .header-titles p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-concept {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--highlight);
+            border: 1px solid var(--highlight);
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Main Layout */
+        main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar - Simulation Controls */
+        aside {
+            width: 300px;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .control-group {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .control-group h2 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        button:last-child { margin-bottom: 0; }
+        button:hover:not(:disabled) { background-color: rgba(255,255,255,0.05); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        button.btn-primary {
+            background-color: var(--tcs-blue);
+            border-color: var(--tcs-blue);
+        }
+        button.btn-primary:hover:not(:disabled) { background-color: var(--tcs-blue-hover); }
+
+        button.btn-danger { border-color: var(--danger); color: #fca5a5; }
+        button.btn-danger:hover:not(:disabled) { background-color: rgba(220, 38, 38, 0.1); }
+
+        button.btn-warning { border-color: var(--warning); color: #fcd34d; }
+        button.btn-warning:hover:not(:disabled) { background-color: rgba(217, 119, 6, 0.1); }
+
+        /* Dashboard Area */
+        .dashboard {
+            flex: 1;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .status-card {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .status-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .status-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--text-muted);
+        }
+
+        .indicator.green { background-color: var(--success); box-shadow: 0 0 8px var(--success); }
+        .indicator.amber { background-color: var(--warning); box-shadow: 0 0 8px var(--warning); }
+        .indicator.red { background-color: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .chart-card {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            position: relative;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .stale-watermark {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: 900;
+            color: rgba(220, 38, 38, 0.15);
+            border: 4px solid rgba(220, 38, 38, 0.15);
+            padding: 0.5rem 2rem;
+            border-radius: 8px;
+            pointer-events: none;
+            text-transform: uppercase;
+        }
+
+        /* Inline SVG Chart Styles */
+        .svg-chart {
+            width: 100%;
+            height: 120px;
+            border-bottom: 1px solid var(--border);
+            border-left: 1px solid var(--border);
+        }
+
+        .svg-line { fill: none; stroke-width: 2; stroke-linejoin: round; transition: d 0.3s linear; }
+        .line-voltage { stroke: var(--highlight); }
+        .line-current { stroke: var(--success); }
+        
+        .current-reading {
+            font-family: var(--font-mono);
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: right;
+            margin-top: 0.5rem;
+        }
+
+        /* Audit Table */
+        .audit-panel {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .audit-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-container {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-card);
+            text-align: left;
+            padding: 0.75rem 1.25rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            z-index: 10;
+        }
+
+        td {
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        }
+
+        tr:hover {
+            background-color: rgba(255,255,255,0.02);
+        }
+
+        .tag {
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-family: var(--font-main);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tag-live { background-color: rgba(22, 163, 74, 0.15); color: #4ade80; border: 1px solid rgba(22,163,74,0.3); }
+        .tag-queued { background-color: rgba(217, 119, 6, 0.15); color: #fbbf24; border: 1px solid rgba(217,119,6,0.3); }
+        .tag-synced { background-color: rgba(56, 189, 248, 0.15); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.3); }
+        .tag-stale { background-color: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148,163,184,0.3); }
+        .tag-duplicate { background-color: rgba(220, 38, 38, 0.15); color: #f87171; border: 1px solid rgba(220,38,38,0.3); }
+
+        .type-critical { color: #f87171; font-weight: bold; }
+        .type-routine { color: var(--text-main); }
+
+        /* Toast Notifications for Failures */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .toast {
+            background-color: var(--bg-card);
+            border-left: 4px solid var(--tcs-blue);
+            padding: 1rem;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            font-size: 0.85rem;
+            animation: slideIn 0.3s ease-out forwards;
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        .toast.error { border-color: var(--danger); }
+        .toast.warning { border-color: var(--warning); }
+        .toast.success { border-color: var(--success); }
+
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <div class="logo-placeholder">tcs<span>|</span>TATA</div>
+            <div class="header-titles">
+                <h1>EdgeSync Autonomous Edge-Compute & Mesh-Synchronization</h1>
+                <p>Applicant: Siddhant Pradhan | App Key: eHack-GI-000-2026-0075054</p>
+            </div>
+        </div>
+        <div class="badge-concept">Concept-Stage Proposal</div>
+    </header>
+
+    <main>
+        <!-- Evaluator Simulation Controls -->
+        <aside>
+            <div class="control-group">
+                <h2>Simulation Controls</h2>
+                <button id="btn-degraded" class="btn-warning">Simulate Degraded Link <span>⚡</span></button>
+                <button id="btn-disconnect" class="btn-danger">Simulate Disconnect <span>🚫</span></button>
+                <button id="btn-reconnect" class="btn-primary" disabled>Restore Connection <span>🔗</span></button>
+            </div>
+
+            <div class="control-group">
+                <h2>Edge Site Events</h2>
+                <button id="btn-fault" style="border-color: #fca5a5; color: #fca5a5;">Inject Critical Fault <span>⚠️</span></button>
+                <button id="btn-restart" style="border-color: #cbd5e1; color: #cbd5e1;">Gateway Restart <span>🔄</span></button>
+            </div>
+
+            <div class="control-group" style="border: 1px dashed var(--border); background: transparent;">
+                <h2 style="color: var(--highlight);">Evaluator Notes</h2>
+                <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">
+                    1. Disconnect the link.<br>
+                    2. Inject a critical fault (note local buffering).<br>
+                    3. Restore connection to trigger reconciliation & duplicate rejection.<br>
+                    4. Gateway restarts rely on HTML5 LocalStorage for durability.
+                </p>
+            </div>
+        </aside>
+
+        <!-- Central Dashboard -->
+        <div class="dashboard">
+            <!-- Global Status Indicators -->
+            <div class="status-bar">
+                <div class="status-card">
+                    <span class="status-label">Uplink State</span>
+                    <div class="status-value"><div id="ind-link" class="indicator green"></div> <span id="val-link">CONNECTED</span></div>
+                </div>
+                <div class="status-card">
+                    <span class="status-label">Local Edge Buffer (Pending)</span>
+                    <div class="status-value"><span id="val-buffer">0</span> records</div>
+                </div>
+                <div class="status-card">
+                    <span class="status-label">Clock Confidence</span>
+                    <div class="status-value"><div id="ind-clock" class="indicator green"></div> <span id="val-clock">SYNCED</span></div>
+                </div>
+                <div class="status-card">
+                    <span class="status-label">System State</span>
+                    <div class="status-value" id="val-sys">LIVE</div>
+                </div>
+            </div>
+
+            <!-- Telemetry Visualization -->
+            <div class="telemetry-grid">
+                <div class="chart-card">
+                    <div class="stale-watermark">STALE DATA</div>
+                    <div class="chart-header">
+                        <span class="chart-title">Transformer Phase A Voltage</span>
+                        <span class="tag tag-live" id="tag-volt-state">LIVE</span>
+                    </div>
+                    <svg class="svg-chart" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <path id="path-voltage" class="svg-line line-voltage" d="M0,50 L100,50"></path>
+                    </svg>
+                    <div class="current-reading" id="read-voltage">230.0 V</div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="stale-watermark">STALE DATA</div>
+                    <div class="chart-header">
+                        <span class="chart-title">Line Current</span>
+                        <span class="tag tag-live" id="tag-curr-state">LIVE</span>
+                    </div>
+                    <svg class="svg-chart" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <path id="path-current" class="svg-line line-current" d="M0,50 L100,50"></path>
+                    </svg>
+                    <div class="current-reading" id="read-current">45.2 A</div>
+                </div>
+            </div>
+
+            <!-- Central Audit Log -->
+            <div class="audit-panel">
+                <div class="audit-header">
+                    <span class="chart-title">Central Control Room: Reconciled Record</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Displays data visible to operators</span>
+                </div>
+                <div class="table-container">
+                    <table id="audit-table">
+                        <thead>
+                            <tr>
+                                <th>Origination Time</th>
+                                <th>Event / Parameter</th>
+                                <th>Value</th>
+                                <th>Provenance / State</th>
+                                <th>Record ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows dynamically populated -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast-container"></div>
+
+    <script>
+        /**
+         * EdgeSync Concept Prototype Logic
+         * Models Local Edge Collection, Buffering, and Control Room Reconciliation
+         */
+
+        const UI = {
+            linkVal: document.getElementById('val-link'),
+            linkInd: document.getElementById('ind-link'),
+            bufferVal: document.getElementById('val-buffer'),
+            clockVal: document.getElementById('val-clock'),
+            clockInd: document.getElementById('ind-clock'),
+            sysVal: document.getElementById('val-sys'),
+            btnDegraded: document.getElementById('btn-degraded'),
+            btnDisconnect: document.getElementById('btn-disconnect'),
+            btnReconnect: document.getElementById('btn-reconnect'),
+            readVoltage: document.getElementById('read-voltage'),
+            readCurrent: document.getElementById('read-current'),
+            pathVoltage: document.getElementById('path-voltage'),
+            pathCurrent: document.getElementById('path-current'),
+            auditBody: document.querySelector('#audit-table tbody'),
+            watermarks: document.querySelectorAll('.stale-watermark'),
+            tagsState: [document.getElementById('tag-volt-state'), document.getElementById('tag-curr-state')]
+        };
+
+        class EdgeSyncPrototype {
+            constructor() {
+                this.state = {
+                    link: 'CONNECTED', // CONNECTED, DEGRADED, DISCONNECTED
+                    clock: 'SYNCED',   // SYNCED, HOLDOVER, UNSYNCED
+                    sysStatus: 'LIVE'
+                };
+                
+                // Edge Gateway durable storage
+                this.localBuffer = [];
+                // Central Database
+                this.centralStore = [];
+                
+                this.telemetryInterval = null;
+                this.recordCounter = 0;
+                
+                // Visualization arrays
+                this.voltHistory = Array(20).fill(230);
+                this.currHistory = Array(20).fill(45);
+
+                this.initPersistence();
+                this.bindControls();
+                this.startTelemetry();
+            }
+
+            initPersistence() {
+                try {
+                    const saved = localStorage.getItem('edgesync_local_buffer');
+                    if (saved) {
+                        this.localBuffer = JSON.parse(saved);
+                        this.showToast('Recovered ' + this.localBuffer.length + ' queued records from local storage.', 'success');
+                        this.updateDashboardMetrics();
+                    }
+                } catch (e) {
+                    console.warn("Local storage disabled or quota exceeded. Resilience degraded.");
+                }
+            }
+
+            saveBuffer() {
+                try {
+                    localStorage.setItem('edgesync_local_buffer', JSON.stringify(this.localBuffer));
+                } catch (e) {
+                    this.showToast('Local persistence failure (browser storage limit).', 'error');
+                }
+            }
+
+            bindControls() {
+                UI.btnDegraded.addEventListener('click', () => this.setLinkState('DEGRADED'));
+                UI.btnDisconnect.addEventListener('click', () => this.setLinkState('DISCONNECTED'));
+                UI.btnReconnect.addEventListener('click', () => this.setLinkState('CONNECTED'));
+                document.getElementById('btn-fault').addEventListener('click', () => this.injectFault());
+                document.getElementById('btn-restart').addEventListener('click', () => this.restartGateway());
+            }
+
+            startTelemetry() {
+                // Generate baseline telemetry every 2.5 seconds
+                this.telemetryInterval = setInterval(() => this.generateTelemetry('ROUTINE'), 2500);
+            }
+
+            generateRecordId() {
+                this.recordCounter++;
+                return `REC-${Date.now().toString().slice(-6)}-${this.recordCounter}`;
+            }
+
+            generateTelemetry(type = 'ROUTINE') {
+                const now = new Date();
+                
+                let v = type === 'CRITICAL' ? (Math.random() * 50 + 150).toFixed(1) : (225 + Math.random() * 10).toFixed(1);
+                let c = type === 'CRITICAL' ? (Math.random() * 200 + 100).toFixed(1) : (40 + Math.random() * 10).toFixed(1);
+                
+                const record = {
+                    id: this.generateRecordId(),
+                    time: now.toISOString(),
+                    type: type,
+                    event: type === 'CRITICAL' ? 'VOLTAGE_DIP_FAULT' : 'ROUTINE_TELEMETRY',
+                    value: `V:${v} C:${c}`,
+                    v: parseFloat(v),
+                    c: parseFloat(c),
+                    clockConfidence: this.state.clock
+                };
+
+                this.routeRecord(record);
+            }
+
+            injectFault() {
+                this.showToast('Critical Fault Injected at Edge Device.', 'error');
+                this.generateTelemetry('CRITICAL');
+            }
+
+            restartGateway() {
+                this.showToast('Edge Gateway Restarting...', 'warning');
+                clearInterval(this.telemetryInterval);
+                this.setLinkState('DISCONNECTED', true); // Forced disconnect
+                
+                setTimeout(() => {
+                    this.initPersistence(); // reload buffer
+                    this.startTelemetry();
+                    this.setLinkState('CONNECTED');
+                    this.showToast('Edge Gateway Recovered & Reconnected.', 'success');
+                }, 3000);
+            }
+
+            routeRecord(record) {
+                // EdgeSync Routing Logic based on Connection State
+                if (this.state.link === 'CONNECTED') {
+                    // Send to central directly
+                    record.status = 'LIVE';
+                    this.sendToCentral(record);
+                } else if (this.state.link === 'DEGRADED') {
+                    // Prioritize critical, queue routine
+                    if (record.type === 'CRITICAL') {
+                        record.status = 'LIVE (PRIORITY ROUTED)';
+                        this.sendToCentral(record);
+                    } else {
+                        record.status = 'QUEUED (DEGRADED LINK)';
+                        this.queueLocally(record);
+                    }
+                } else if (this.state.link === 'DISCONNECTED') {
+                    // Queue everything
+                    record.status = 'QUEUED (DISCONNECTED)';
+                    this.queueLocally(record);
+                    // Central dashboard receives NO data. Represented by freezing history.
+                }
+                
+                this.updateDashboardMetrics();
+            }
+
+            queueLocally(record) {
+                this.localBuffer.push(record);
+                this.saveBuffer();
+            }
+
+            sendToCentral(record) {
+                this.centralStore.unshift(record);
+                // Keep store bounded for UI
+                if (this.centralStore.length > 50) this.centralStore.pop(); 
+                
+                // Update charts only if it's new data arriving
+                this.updateCharts(record.v, record.c);
+                this.renderAuditLog();
+            }
+
+            setLinkState(newState, silent = false) {
+                this.state.link = newState;
+                
+                // Update Buttons
+                UI.btnDegraded.disabled = (newState === 'DEGRADED');
+                UI.btnDisconnect.disabled = (newState === 'DISCONNECTED');
+                UI.btnReconnect.disabled = (newState === 'CONNECTED');
+
+                // Update UI Indicators
+                UI.linkInd.className = 'indicator';
+                if (newState === 'CONNECTED') {
+                    UI.linkInd.classList.add('green');
+                    UI.linkVal.style.color = 'var(--success)';
+                    this.state.clock = 'SYNCED';
+                    this.state.sysStatus = 'LIVE';
+                    this.syncBuffer();
+                } else if (newState === 'DEGRADED') {
+                    UI.linkInd.classList.add('amber');
+                    UI.linkVal.style.color = 'var(--warning)';
+                    this.state.clock = 'HOLDOVER';
+                    this.state.sysStatus = 'PRIORITY ONLY';
+                    if (!silent) this.showToast('Link degraded. Routing critical events only.', 'warning');
+                } else {
+                    UI.linkInd.classList.add('red');
+                    UI.linkVal.style.color = 'var(--danger)';
+                    this.state.clock = 'UNSYNCED';
+                    this.state.sysStatus = 'ISOLATED';
+                    if (!silent) this.showToast('Link lost. Buffering locally.', 'error');
+                }
+
+                UI.linkVal.innerText = newState;
+                this.updateClockUI();
+                this.toggleStaleUI(newState === 'DISCONNECTED');
+            }
+
+            updateClockUI() {
+                UI.clockVal.innerText = this.state.clock;
+                UI.sysVal.innerText = this.state.sysStatus;
+                UI.clockInd.className = 'indicator ' + 
+                    (this.state.clock === 'SYNCED' ? 'green' : 
+                     this.state.clock === 'HOLDOVER' ? 'amber' : 'red');
+            }
+
+            toggleStaleUI(isStale) {
+                UI.watermarks.forEach(w => w.style.display = isStale ? 'block' : 'none');
+                UI.tagsState.forEach(t => {
+                    t.className = 'tag ' + (isStale ? 'tag-stale' : 'tag-live');
+                    t.innerText = isStale ? 'STALE' : 'LIVE';
+                });
+            }
+
+            syncBuffer() {
+                if (this.localBuffer.length === 0) return;
+                
+                this.showToast(`Synchronizing ${this.localBuffer.length} buffered records...`, 'success');
+                
+                // Simulate network latency for sync
+                setTimeout(() => {
+                    // Simulate Duplicate Injection (Networking anomaly during sync)
+                    if (this.localBuffer.length > 0) {
+                        const duplicateRecord = JSON.parse(JSON.stringify(this.localBuffer[0])); // deep copy
+                        duplicateRecord.status = 'DUPLICATE REJECTED';
+                        this.centralStore.unshift(duplicateRecord); // Add rejected duplicate to log to prove reconciliation
+                    }
+
+                    // Process actual buffer
+                    this.localBuffer.forEach(rec => {
+                        rec.status = 'LATE BACKLOG (SYNCED)';
+                        this.centralStore.unshift(rec);
+                    });
+                    
+                    // Sort central store by time to simulate reconciliation of out-of-order data
+                    this.centralStore.sort((a, b) => new Date(b.time) - new Date(a.time));
+                    
+                    this.localBuffer = [];
+                    this.saveBuffer();
+                    this.updateDashboardMetrics();
+                    this.renderAuditLog();
+                }, 800);
+            }
+
+            updateDashboardMetrics() {
+                UI.bufferVal.innerText = this.localBuffer.length;
+            }
+
+            updateCharts(v, c) {
+                // Update text
+                UI.readVoltage.innerText = `${v} V`;
+                UI.readCurrent.innerText = `${c} A`;
+
+                // Update Arrays
+                this.voltHistory.shift();
+                this.voltHistory.push(v);
+                this.currHistory.shift();
+                this.currHistory.push(c);
+
+                // Draw SVG paths
+                const drawPath = (data, min, max) => {
+                    return data.map((val, idx) => {
+                        const x = (idx / (data.length - 1)) * 100;
+                        const y = 100 - (((val - min) / (max - min)) * 100);
+                        return `${idx === 0 ? 'M' : 'L'}${x},${y}`;
+                    }).join(' ');
+                };
+
+                UI.pathVoltage.setAttribute('d', drawPath(this.voltHistory, 100, 300));
+                UI.pathCurrent.setAttribute('d', drawPath(this.currHistory, 0, 350));
+            }
+
+            renderAuditLog() {
+                UI.auditBody.innerHTML = '';
+                
+                this.centralStore.forEach(rec => {
+                    const tr = document.createElement('tr');
+                    
+                    // Format time
+                    const d = new Date(rec.time);
+                    const timeStr = `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}.${d.getMilliseconds().toString().padStart(3,'0')}`;
+
+                    // Determine tags
+                    let tagClass = 'tag-live';
+                    if (rec.status.includes('QUEUED')) tagClass = 'tag-queued';
+                    if (rec.status.includes('SYNCED')) tagClass = 'tag-synced';
+                    if (rec.status.includes('DUPLICATE')) tagClass = 'tag-duplicate';
+
+                    const typeClass = rec.type === 'CRITICAL' ? 'type-critical' : 'type-routine';
+
+                    tr.innerHTML = `
+                        <td>${timeStr} 
+                            <div style="font-size:0.65rem; color: var(--text-muted);">Clock: ${rec.clockConfidence}</div>
+                        </td>
+                        <td class="${typeClass}">${rec.event}</td>
+                        <td>${rec.value}</td>
+                        <td><span class="tag ${tagClass}">${rec.status}</span></td>
+                        <td style="color: var(--text-muted);">${rec.id}</td>
+                    `;
+                    UI.auditBody.appendChild(tr);
+                });
+            }
+
+            showToast(message, type) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerText = message;
+                
+                container.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(100%)';
+                    toast.style.transition = 'all 0.3s ease-in';
+                    setTimeout(() => toast.remove(), 300);
+                }, 4000);
+            }
+        }
+
+        // Initialize Simulation
+        window.onload = () => {
+            window.EdgeSync = new EdgeSyncPrototype();
+        };
+
+    </script>
+</body>
+</html>
